@@ -1,0 +1,75 @@
+---
+title: My dynamic report
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, error=FALSE)
+library(tidyverse)
+```
+
+```{css}
+body {
+  font-family: Arial, sans-serif;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+h2 {
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+}
+```
+
+## 8AM Class Attendance Observational Report
+
+
+```{r}
+csv_url <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vRDxKzEMlkwLi1-9xT0_Tip5I9_CYE5qJngvnxJVOW7gG27AS6JdGuI0pWYwwpI8Pa-ilG4loPC5Z-2/pub?output=csv"
+
+logged_data <- read_csv(csv_url)
+
+latest_data <- logged_data %>%
+  rename(
+    timestamp = Timestamp,
+    attendance = `How many people actually attended the 8 o’clock morning class today?`,
+    class_type = `What type of class is this 8 am session?`,
+    student_groups = `Which of the following groups attended this morning’s 8 o’clock class?`,
+    weather = `What are the weather conditions at 8 o’clock this morning?`,
+    weekday = `Which day of the week is this observation taking place on?`
+  )
+
+attendance_summary <- latest_data %>%
+  summarise(
+    avg_attendance = round(mean(attendance),1),
+    max_attendance = max(attendance)
+  )
+cat("Key Findings\n")
+cat("Average 8AM attendance: ", attendance_summary$avg_attendance, " students\n")
+cat("Highest attendance in one class: ", attendance_summary$max_attendance, " students\n")
+
+```
+
+
+### Chart 1: Average Attendance by Class Type
+```{r}
+ggplot(latest_data, aes(x = class_type, y = attendance, fill = class_type)) +
+  geom_bar(stat = "summary", fun = "mean") +
+  labs(title = "Attendance by Class Type",
+       x = "Class Type",
+       y = "Average Attendance") +
+  theme_minimal()
+```
+
+
+### Chart 2: Average Attendance by Weekday
+```{r}
+ggplot(latest_data, aes(x = weekday, y = attendance, fill = weekday)) +
+  geom_bar(stat = "summary", fun = "mean") +
+  labs(title = "Attendance by Weekday",
+       x = "Weekday",
+       y = "Average Attendance") +
+  theme_minimal()
+```
+
